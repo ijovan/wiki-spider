@@ -9,8 +9,9 @@ end
 
 When(/^I run search$/) do
   click_button("Search!")
+  sleep(2)
 end
 
 Then(/^I should get a response confirming the start of search$/) do
-  page.should have_content("Search running...")
+  page.should have_content("Searching...")
 end

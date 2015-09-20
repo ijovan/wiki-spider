@@ -8,6 +8,7 @@ Feature: Search
   Background:
     Given that I'm on the home page
 
+  @javascript
   Scenario: Start search
     Given that I've set two correct links
     When I run search

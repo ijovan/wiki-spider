@@ -1,5 +1,24 @@
 <form>
-  <input type="text" name="start_node"><br>
-  <input type="text" name="end_node"><br>
-  <input type="submit" name="search" value="Search!"><br>
+  <input type="text" id="start_node"/><br>
+  <input type="text" id="end_node"/><br>
+  <button type="button" id="search" onclick="run_search()">Search!</button><br>
 </form>
+
+<label id="searching"></label><br>
+
+<script>
+  function run_search(){
+    var start_node = document.getElementById("start_node").value;
+    var end_node = document.getElementById("end_node").value;
+
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("POST", "/home/create", true);
+    xmlhttp.setRequestHeader("Content-type", "application/json");
+    xmlhttp.onreadystatechange = function () {
+      if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+        document.getElementById("searching").innerHTML = "Searching...";
+      }
+    }
+    xmlhttp.send(JSON.stringify({startNode: start_node, endNode: end_node}));
+  };
+</script>
