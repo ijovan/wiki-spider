@@ -23,6 +23,14 @@ class Reader
     retval[:iter_count] = @iter
     retval[:time] = time
 
+    if retval[:failed]
+      puts "Search failed to complete in 50 iterations."
+
+      Pusher.trigger('test_channel', 'my_event', {
+        message: "Search failed to complete in 50 iterations."
+      })
+    end
+
     path = retval[:final_path]
 
     puts "FOUND IT: #{path} in #{@iter} iterations and #{time.round(2)} seconds with #{path.count - 2} connecting nodes."
@@ -86,6 +94,12 @@ class Reader
     end
 
     while true
+      if @iter > 50
+        retval[:failed] = true
+
+        return retval
+      end
+
       begin
         file = Nokogiri::HTML open "https://en.wikipedia.org/wiki/#{link}"
 
