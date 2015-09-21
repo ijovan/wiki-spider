@@ -12,4 +12,4 @@ Feature: Search
   Scenario: Start search
     Given that I've set two correct links
     When I run search
-    Then I should get a response confirming the start of search
+    Then I should start seeing results

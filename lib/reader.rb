@@ -1,28 +1,50 @@
 require 'nokogiri'
 require 'open-uri'
-require 'byebug'
 
 class Reader
   def self.find(start_node, end_node)
-    puts "Connecting #{start_node} and #{end_node}"
+    start_node.encode("utf-8")
+    end_node.encode("utf-8")
+
+    puts "Connecting #{start_node} and #{end_node}."
+
+    Pusher.trigger('test_channel', 'my_event', {
+      message: "Connecting #{start_node} and #{end_node}."
+    })
+
+    start = Time.now
+
     reader = Reader.new end_node
-    reader.get_connection start_node
+
+    retval = reader.get_connection start_node
+
+    time = Time.now - start
+
+    retval[:iter_count] = @iter
+    retval[:time] = time
+
+    path = retval[:final_path]
+
+    puts "FOUND IT: #{path} in #{@iter} iterations and #{time.round(2)} seconds with #{path.count - 2} connecting nodes."
+
+    Pusher.trigger('test_channel', 'my_event', {
+      message: "FOUND IT: #{path} in #{@iter} iterations and #{time.round(2)} seconds with #{path.count - 2} connecting nodes."
+    })
   end
 
   def self.find_by_url(start_url, end_url)
     start_node = start_url[/\/wiki\/.*/].sub("/wiki/", "")
     end_node = end_url[/\/wiki\/.*/].sub("/wiki/", "")
+
     find(start_node, end_node)
   end
 
   def initialize target
-    t = target.encode("utf-8")
-
-    if t.include? "#"
-      t = t.sub(t[/#.*/], "")
+    if target.include? "#"
+      target.sub!(target[/#.*/], "")
     end
 
-    @target = t
+    @target = target
     @to_visit = {}
     @visited = []
     @target_words = []
@@ -34,16 +56,12 @@ class Reader
   def scan_target
     file = Nokogiri::HTML open "https://en.wikipedia.org/wiki/#{@target}"
 
-    links = unpack_css file, "p a", true, []
-    links = links.merge(unpack_css(file, "div#content li a", true, []))
+    links = CSSUnpacker.unpack_css file, "p a", true, [], @target
+    links = links.merge(CSSUnpacker.unpack_css(file, "div#content li a", true, [], @target))
 
-    links.each do |link|
-      @target_words.push link[0]
-    end
+    links.each{ |link| @target_words.push(link[0]) }
 
     @target_words.uniq!
-
-    @target_words
   end
 
   def pack_hash new_hash
@@ -61,10 +79,6 @@ class Reader
   end
 
   def get_connection link
-    @time = Time.now
-
-    link = link.encode("utf-8")
-
     path = [link]
 
     if link.eql? @target
@@ -75,19 +89,21 @@ class Reader
       begin
         file = Nokogiri::HTML open "https://en.wikipedia.org/wiki/#{link}"
 
-        new_hash = unpack_css file, "p a", false, path
+        new_hash = CSSUnpacker.unpack_css file, "p a", false, path, @target
 
         if new_hash[:final_path]
           return new_hash
         end
+
+        new_hash = rate_score(new_hash)
 
         pack_hash new_hash
 
 #        new_hash = unpack_css file, "div#content li a", false
 
 #        pack_hash new_hash
-      rescue
-        puts "ERROR: #{link}"
+#      rescue
+#        puts "ERROR: #{link}"
       end
 
       @visited.push link
@@ -96,11 +112,22 @@ class Reader
 
       path = @to_visit[link][:path]
 
+      Pusher.trigger('test_channel', 'my_event', {
+          message: "#{@iter} #{path} #{@to_visit[link][:score]}"
+      })
+
       puts "#{@iter} #{path} #{@to_visit[link][:score]}"
 
       @iter += 1
 
       @to_visit.delete link
+    end
+  end
+
+  def rate_score links
+    links.each do |key, value|
+      value[:score] = link_val(key)
+      links[key] = value
     end
   end
 
@@ -131,55 +158,4 @@ class Reader
 
     score
   end
-
-  def unpack_css file, selector, tar, parent
-    links = {}
-
-    coll = file.css(selector)
-
-    coll.each do |a|
-      link = a["href"]
-
-      if link.sub("/wiki/", "").eql?(@target) && !tar
-        path = parent.clone.push(@target)
-
-        time = Time.now - @time
-
-        puts "FOUND IT: #{path} in #{@iter} iterations and #{time.round(2)} seconds with #{path.count - 2} connecting nodes."
-        return { :final_path => path, :iter_count => @iter, :time => time }
-      end
-
-      if a["rel"].eql? "nofollow"
-        next
-      end
-
-      if link.include?("International_Standard_Book_Number") && selector.include?("li")
-        next
-      end
-
-      if link.include?("/wiki/") && !link.include?(":")
-        l = a["href"].sub("/wiki/", "")
-
-        if l.include? "#"
-          l = l.sub(l[/#.*/], "")
-        end
-
-        if tar
-          score = 0
-        else
-          score = link_val l
-        end
-
-        newarr = parent.clone
-
-        newarr.push l
-
-        links[l] = { :score => score, :path => newarr }
-      end
-    end
-
-    links
-  end
 end
-
-#Reader.find("", "")

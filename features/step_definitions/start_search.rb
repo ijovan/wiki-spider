@@ -12,6 +12,6 @@ When(/^I run search$/) do
   sleep(2)
 end
 
-Then(/^I should get a response confirming the start of search$/) do
-  page.should have_content("Searching...")
+Then(/^I should start seeing results$/) do
+  page.should have_content("Connecting Novi_Sad and Ljubljana")
 end
