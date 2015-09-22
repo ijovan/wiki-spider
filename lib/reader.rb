@@ -2,19 +2,19 @@ require 'nokogiri'
 require 'open-uri'
 
 class Reader
-  def self.find(start_node, end_node)
+  def self.find(start_node, end_node, channel)
     start_node.encode("utf-8")
     end_node.encode("utf-8")
 
-    puts "Connecting #{start_node} and #{end_node}."
-
-    Pusher.trigger('test_channel', 'my_event', {
-      message: "Connecting #{start_node} and #{end_node}."
-    })
-
     start = Time.now
 
-    reader = Reader.new end_node
+    reader = Reader.new end_node, channel
+
+    puts "Connecting #{start_node} and #{end_node}."
+
+    Pusher.trigger(channel, 'my_event', {
+      message: "Connecting #{start_node} and #{end_node}."
+    })
 
     retval = reader.get_connection start_node
 
@@ -26,28 +26,30 @@ class Reader
     if retval[:failed]
       puts "Search failed to complete in 50 iterations."
 
-      Pusher.trigger('test_channel', 'my_event', {
+      Pusher.trigger(channel, 'my_event', {
         message: "Search failed to complete in 50 iterations."
       })
+
+      return
     end
 
     path = retval[:final_path]
 
     puts "FOUND IT: #{path} in #{@iter} iterations and #{time.round(2)} seconds with #{path.count - 2} connecting nodes."
 
-    Pusher.trigger('test_channel', 'my_event', {
+    Pusher.trigger(channel, 'my_event', {
       message: "FOUND IT: #{path} in #{@iter} iterations and #{time.round(2)} seconds with #{path.count - 2} connecting nodes."
     })
   end
 
-  def self.find_by_url(start_url, end_url)
+  def self.find_by_url(start_url, end_url, channel)
     start_node = start_url[/\/wiki\/.*/].sub("/wiki/", "")
     end_node = end_url[/\/wiki\/.*/].sub("/wiki/", "")
 
-    find(start_node, end_node)
+    find(start_node, end_node, channel)
   end
 
-  def initialize target
+  def initialize target, channel
     if target.include? "#"
       target.sub!(target[/#.*/], "")
     end
@@ -57,6 +59,7 @@ class Reader
     @visited = []
     @target_words = []
     @iter = 1
+    @channel = channel
 
     scan_target
   end
@@ -95,6 +98,8 @@ class Reader
 
     while true
       if @iter > 50
+        retval = {}
+
         retval[:failed] = true
 
         return retval
@@ -126,8 +131,8 @@ class Reader
 
       path = @to_visit[link][:path]
 
-      Pusher.trigger('test_channel', 'my_event', {
-          message: "#{@iter} #{path} #{@to_visit[link][:score]}"
+      Pusher.trigger(@channel, 'my_event', {
+        message: "#{@iter} #{path} #{@to_visit[link][:score]}"
       })
 
       puts "#{@iter} #{path} #{@to_visit[link][:score]}"
