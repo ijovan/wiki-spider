@@ -121,8 +121,8 @@ class Reader
 #        new_hash = unpack_css file, "div#content li a", false
 
 #        pack_hash new_hash
-#      rescue
-#        puts "ERROR: #{link}"
+      rescue
+        puts "ERROR: #{link}"
       end
 
       @visited.push link

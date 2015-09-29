@@ -1,8 +1,44 @@
-<form>
-  <input type="text" id="start_node"/><br>
-  <input type="text" id="end_node"/><br>
-  <button type="button" id="search" onclick="run_search()">Search!</button><br>
-</form>
+<div class="site-wrapper">
 
-<label id="searching"></label><br>
-<table id="results"></table><br>
+  <div class="site-wrapper-inner">
+
+    <div class="cover-container">
+
+      <div class="masthead clearfix">
+        <nav class="navbar navbar-default">
+          <h3>Input two Wikipeda article links, hit go and observe a path between them being found.</h3>
+          <div class="container-fluid">
+            <div class="inner">
+              <div class="row">
+                <div class="col-lg-6">
+                  <input type="text" id="start_node" class="form-control" placeholder="Starting article link">
+                </div>
+                <div class="col-lg-6">
+                  <div class="input-group">
+                    <input type="text" id="end_node" class="form-control" placeholder="Ending article link">
+                    <span class="input-group-btn">
+                      <button class="btn btn-default" type="button" id="search" onclick="run_search()">Go!</button>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nav>
+      </div>
+
+      <div class="inner cover">
+        <label id="searching"></label><br>
+        <table class="table" id="results"></table><br>
+      </div>
+
+      <div class="mastfoot">
+        <div class="inner">
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

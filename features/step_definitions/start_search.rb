@@ -8,7 +8,7 @@ Given(/^that I've set two correct links$/) do
 end
 
 When(/^I run search$/) do
-  click_button("Search!")
+  click_button("Go!")
   sleep(2)
 end
 
