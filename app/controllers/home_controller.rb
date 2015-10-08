@@ -6,10 +6,10 @@ class HomeController < ApplicationController
   end
 
   def create
-    payload = JSON.parse request.body.read
+    payload = JSON.parse(request.body.read)
 
     fork do
-      Reader.find_by_url(payload["startNode"], payload["endNode"], payload["channel"])
+      SearchHandler.find_by_url(payload["startNode"], payload["endNode"], payload["channel"])
     end
 
     render json: {}, status: 200
