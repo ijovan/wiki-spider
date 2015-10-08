@@ -24,23 +24,37 @@ class CSSUnpacker
     file.css(@selector).each do |a|
       link = a["href"]
 
-      if link.sub("/wiki/", "").eql?(@target)
+      next unless link.include?("/wiki/")
+
+      name = link.split("/wiki/")[1]
+
+      if name.eql?(@target)
         return { :final_path => parent.clone.push(@target) }
       end
 
-      next if ((link.include?("International_Standard_Book_Number") &&
+      next if ((skip_list.include?(name) &&
           @selector.include?("li")) ||
           a["rel"].eql?("nofollow") ||
-          link.include?(":"))
+          name.include?(":") ||
+          link.split("/wiki/")[0] != "")
 
-      if link.include?("/wiki/")
-        cleaned = link.sub("/wiki/", "").split("#")[0]
+      cleaned = name.split("#")[0]
 
-        links[cleaned] = { :path => parent.clone.push(cleaned) }
-      end
+      links[cleaned] = { :path => parent.clone.push(cleaned) }
     end
 
     links
+  end
+
+  def skip_list
+    [
+      "International_Standard_Book_Number",
+      "International_Standard_Serial_Number",
+      "Digital_object_identifier",
+      "Integrated_Authority_File",
+      "Virtual_International_Authority_File",
+      "Geographic_coordinate_system"
+    ]
   end
 
 end

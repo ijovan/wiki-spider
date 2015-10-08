@@ -5,7 +5,7 @@ class Reader
   def initialize(target, channel)
     @target = NameHandler.clean_node_name(target)
     @socket = PusherSocket.new(channel, target, MAX_ITER)
-    @css_unpacker = CSSUnpacker.new(target, "p a")
+    @css_unpacker = CSSUnpacker.new(target, "p a, div#bodyContent li a")
 
     scan_target
   end

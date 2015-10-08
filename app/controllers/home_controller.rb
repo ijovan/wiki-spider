@@ -2,9 +2,6 @@ class HomeController < ApplicationController
   protect_from_forgery
   skip_before_action :verify_authenticity_token, if: :json_request?
 
-  def index
-  end
-
   def create
     payload = JSON.parse(request.body.read)
 

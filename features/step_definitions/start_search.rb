@@ -9,7 +9,7 @@ end
 
 When(/^I run search$/) do
   click_button("Go!")
-  sleep(5)
+  sleep(8)
 end
 
 Then(/^I should start seeing results$/) do
