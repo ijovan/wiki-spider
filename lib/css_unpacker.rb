@@ -1,3 +1,5 @@
+require 'nokogiri'
+
 class CSSUnpacker
 
   def initialize(target, selector, tar)
@@ -31,6 +33,14 @@ class CSSUnpacker
     end
 
     links
+  end
+
+  def acquire_links(link, path)
+    file = Nokogiri::HTML(open("https://en.wikipedia.org/wiki/#{link}"))
+
+    unpack(file, path)
+  rescue
+    puts "ERROR: #{link}"
   end
 
 end

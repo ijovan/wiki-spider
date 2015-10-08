@@ -1,100 +1,72 @@
-require 'nokogiri'
 require 'open-uri'
 
 class Reader
 
   MAX_ITER = 50
 
-  def find(start_node)
-    @socket.send_connecting(start_node)
-
-    start = Time.now
-
-    retval = get_connection(start_node)
-
-    time = Time.now - start
-
-    retval[:iter_count] = @iter
-    retval[:time] = time
-
-    if retval
-      @socket.send_found_it(retval[:final_path], @iter, time)
-    else
-      @socket.send_failed
-    end
-  end
-
   def initialize(target, channel)
     @target = NameHandler.clean_node_name(target)
-    @to_visit = {}
-    @visited = []
-    @iter = 1
     @socket = PusherSocket.new(channel, target, MAX_ITER)
+    @iter = 1
 
     scan_target
   end
 
   def scan_target
-    css_unpacker = CSSUnpacker.new(@target, "p a, div#content li a", true)
-
-    file = Nokogiri::HTML(open("https://en.wikipedia.org/wiki/#{@target}"))
-
-    links = css_unpacker.unpack(file, [])
+    links = CSSUnpacker.new(@target, "p a, div#content li a", true).acquire_links(@target, [])
 
     target_words = links.map { |link| link[0] }
 
     @heuristic = Heuristic.new(@target, target_words.uniq)
   end
 
-  def pack_hash new_hash
-    new_hash.each do |key, value|
-      unless @visited.include? key
-        if @to_visit.has_key? key
-          val = @to_visit[key]
+  def find(start_node)
+    @socket.send_connecting(start_node)
 
-          @to_visit[key][:score] = val[:score] + value[:score]
-        else
-          @to_visit[key] = value
-        end
-      end
+    time = Timer.measure_time do
+      get_connection(start_node)
+    end
+
+    if @result
+      @socket.send_found_it(@result, @iter, time)
+    else
+      @socket.send_failed(@iter)
     end
   end
 
-  def get_connection link
+  def get_connection(link)
     path = [link]
 
-    return path if link.eql?(@target)
+    @result = path if link.eql?(@target)
 
-    css_unpacker = CSSUnpacker.new(@target, "p a", false)
+    @css_unpacker = CSSUnpacker.new(@target, "p a", false)
 
-    while true
+    while !@result
       return nil if @iter > MAX_ITER
 
-      begin
-        file = Nokogiri::HTML(open("https://en.wikipedia.org/wiki/#{link}"))
+      handle_links(@css_unpacker.acquire_links(link, path))
 
-        new_hash = css_unpacker.unpack(file, path)
+      return if @result
 
-        return new_hash if new_hash[:final_path]
+      max = @heuristic.current_best
 
-        pack_hash(@heuristic.rate_score(new_hash))
-      rescue
-        puts "ERROR: #{link}"
-      end
+      link  = max[0]
+      path  = max[1][:path]
+      score = max[1][:score]
 
-      @visited.push(link)
+      @socket.send_iteration(@iter, path, score)
 
-      link = @to_visit.max_by { |k,v| v[:score] }[0]
-
-      to_visit = @to_visit[link]
-
-      path = to_visit[:path]
-
-      @socket.send_iteration(@iter, path, to_visit[:score])
+      @heuristic.mark_visited(link)
 
       @iter += 1
+    end
+  end
 
-      @to_visit.delete(link)
+  def handle_links(links)
+    if links[:final_path]
+      @result = links[:final_path]
+    else
+      @heuristic.new_scores(links)
     end
   end
 

@@ -18,8 +18,12 @@ class PusherSocket
     send("Connecting #{start_node} and #{@target}.")
   end
 
-  def send_failed
-    send("Search failed to complete in #{max_iter} iterations.")
+  def send_failed(iter)
+    if (iter > @max_iter)
+      send("Search failed to complete in #{@max_iter} iterations.")
+    else
+      send("Search failed")
+    end
   end
 
   def send_found_it(path, iter, time)
