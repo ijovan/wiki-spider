@@ -1,7 +1,11 @@
 class NameHandler
 
   def self.clean_node_name(target)
-    target.split("#")[0]
+    if target.include? "#"
+      target.sub!(target[/#.*/], "")
+    end
+
+    target
   end
 
   def self.clean_url(url)

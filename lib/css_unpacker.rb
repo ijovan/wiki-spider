@@ -1,12 +1,22 @@
 require 'nokogiri'
+require 'open-uri'
 
 class CSSUnpacker
 
-  def initialize(target, selector, tar)
+  def initialize(target, selector)
     @target = target
     @selector = selector
-    @tar = tar
   end
+
+  def acquire_links(node)
+    file = Nokogiri::HTML(open("https://en.wikipedia.org/wiki/#{node[0]}"))
+
+    unpack(file, node[1][:path])
+  rescue
+    puts "ERROR: #{node}"
+  end
+
+  private
 
   def unpack(file, parent)
     links = {}
@@ -14,7 +24,7 @@ class CSSUnpacker
     file.css(@selector).each do |a|
       link = a["href"]
 
-      if link.sub("/wiki/", "").eql?(@target) && !@tar
+      if link.sub("/wiki/", "").eql?(@target)
         return { :final_path => parent.clone.push(@target) }
       end
 
@@ -24,23 +34,13 @@ class CSSUnpacker
           link.include?(":"))
 
       if link.include?("/wiki/")
-        l = link.sub("/wiki/", "")
+        cleaned = link.sub("/wiki/", "").split("#")[0]
 
-        l.sub!(l[/#.*/], "") if l.include?("#")
-
-        links[l] = { :path => parent.clone.push(l) }
+        links[cleaned] = { :path => parent.clone.push(cleaned) }
       end
     end
 
     links
-  end
-
-  def acquire_links(link, path)
-    file = Nokogiri::HTML(open("https://en.wikipedia.org/wiki/#{link}"))
-
-    unpack(file, path)
-  rescue
-    puts "ERROR: #{link}"
   end
 
 end

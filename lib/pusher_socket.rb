@@ -6,14 +6,6 @@ class PusherSocket
     @max_iter = max_iter
   end
 
-  def send(message)
-    puts message
-
-    Pusher.trigger(@channel, 'my_event', {
-      message: message
-    })
-  end
-
   def send_connecting(start_node)
     send("Connecting #{start_node} and #{@target}.")
   end
@@ -30,8 +22,16 @@ class PusherSocket
     send("FOUND IT: #{path} in #{iter} iterations and #{time.round(2)} seconds with #{path.count - 2} connecting nodes.")
   end
 
-  def send_iteration(iter, path, score)
-    send("#{iter} #{path} #{score}")
+  def send_iteration(iter, node)
+    send("#{iter} #{node[:path]} #{node[:score]}")
+  end
+
+  private
+
+  def send(message)
+    puts(message)
+
+    Pusher.trigger(@channel, 'message', { message: message })
   end
 
 end

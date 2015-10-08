@@ -1,5 +1,3 @@
-require 'open-uri'
-
 class Reader
 
   MAX_ITER = 50
@@ -7,24 +5,16 @@ class Reader
   def initialize(target, channel)
     @target = NameHandler.clean_node_name(target)
     @socket = PusherSocket.new(channel, target, MAX_ITER)
-    @iter = 1
+    @css_unpacker = CSSUnpacker.new(target, "p a")
 
     scan_target
-  end
-
-  def scan_target
-    links = CSSUnpacker.new(@target, "p a, div#content li a", true).acquire_links(@target, [])
-
-    target_words = links.map { |link| link[0] }
-
-    @heuristic = Heuristic.new(@target, target_words.uniq)
   end
 
   def find(start_node)
     @socket.send_connecting(start_node)
 
     time = Timer.measure_time do
-      get_connection(start_node)
+      search(start_node)
     end
 
     if @result
@@ -32,31 +22,35 @@ class Reader
     else
       @socket.send_failed(@iter)
     end
+
+    @result
   end
 
-  def get_connection(link)
-    path = [link]
+  private
 
-    @result = path if link.eql?(@target)
+  def scan_target
+    links = CSSUnpacker.new(nil, "p a, div#content li a").acquire_links([@target, { :path => [] }])
 
-    @css_unpacker = CSSUnpacker.new(@target, "p a", false)
+    target_words = links.map { |link| link[0] }
 
-    while !@result
-      return nil if @iter > MAX_ITER
+    @score_handler = ScoreHandler.new(@target, target_words.uniq)
+  end
 
-      handle_links(@css_unpacker.acquire_links(link, path))
+  def search(link)
+    @iter = 1
 
-      return if @result
+    @result = [link] if link.eql?(@target)
 
-      max = @heuristic.current_best
+    start_node = [link, { :path => [link], :score => 0 }]
 
-      link  = max[0]
-      path  = max[1][:path]
-      score = max[1][:score]
+    handle_links(@css_unpacker.acquire_links(start_node))
 
-      @socket.send_iteration(@iter, path, score)
+    while (!@result && @iter <= MAX_ITER) do
+      max = @score_handler.take_current_best
 
-      @heuristic.mark_visited(link)
+      @socket.send_iteration(@iter, max[1])
+
+      handle_links(@css_unpacker.acquire_links(max))
 
       @iter += 1
     end
@@ -66,7 +60,7 @@ class Reader
     if links[:final_path]
       @result = links[:final_path]
     else
-      @heuristic.new_scores(links)
+      @score_handler.new_scores(links)
     end
   end
 
