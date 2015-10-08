@@ -1,42 +1,36 @@
 class CSSUnpacker
-  def self.unpack_css file, selector, tar, parent, target
+
+  def initialize(target, selector, tar)
     @target = target
+    @selector = selector
+    @tar = tar
+  end
+
+  def unpack(file, parent)
     links = {}
 
-    coll = file.css(selector)
-
-    coll.each do |a|
+    file.css(@selector).each do |a|
       link = a["href"]
 
-      if link.sub("/wiki/", "").eql?(@target) && !tar
-        path = parent.clone.push(@target)
-
-        return { :final_path => path }
+      if link.sub("/wiki/", "").eql?(@target) && !@tar
+        return { :final_path => parent.clone.push(@target) }
       end
 
-      if a["rel"].eql? "nofollow"
-        next
-      end
+      next if ((link.include?("International_Standard_Book_Number") &&
+          @selector.include?("li")) ||
+          a["rel"].eql?("nofollow") ||
+          link.include?(":"))
 
-      if link.include?("International_Standard_Book_Number") && selector.include?("li")
-        next
-      end
+      if link.include?("/wiki/")
+        l = link.sub("/wiki/", "")
 
-      if link.include?("/wiki/") && !link.include?(":")
-        l = a["href"].sub("/wiki/", "")
+        l.sub!(l[/#.*/], "") if l.include?("#")
 
-        if l.include? "#"
-          l = l.sub(l[/#.*/], "")
-        end
-
-        newarr = parent.clone
-
-        newarr.push l
-
-        links[l] = { :path => newarr }
+        links[l] = { :path => parent.clone.push(l) }
       end
     end
 
     links
   end
+
 end

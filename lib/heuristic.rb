@@ -35,4 +35,11 @@ class Heuristic
     score
   end
 
+  def rate_score(links)
+    links.each do |key, value|
+      value[:score] = link_val(key)
+      links[key] = value
+    end
+  end
+
 end
