@@ -1,0 +1,34 @@
+<div class="site-wrapper-inner">
+  <div class="cover-container">
+    <div class="masthead clearfix">
+      <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <div class="inner">
+            <h5>Insert links to two <a href="https://www.wikipedia.org/">Wikipedia</a> articles, hit go and observe a path between them being found. <a href="https://github.com/ijovan/wikipedia-graph-search">Github repo</a>.</h5>
+
+            <div class="row">
+              <div class="col-lg-6">
+                <input type="text" id="start_node" class="form-control" placeholder="Starting article link">
+              </div>
+
+              <div class="col-lg-6">
+                <div class="input-group">
+                  <input type="text" id="end_node" class="form-control" placeholder="Ending article link">
+
+                  <span class="input-group-btn">
+                    <button class="btn btn-default" type="button" id="search" onclick="run_search()">Go!</button>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <br>
+      </nav>
+    </div>
+
+    <div class="inner cover">
+      <table class="table" id="results"></table><br>
+    </div>
+  </div>
+</div>
