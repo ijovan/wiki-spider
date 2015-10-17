@@ -1,3 +1,5 @@
+require 'uri'
+
 class SearchHandler
 
   def self.find(start_node, end_node, channel)
@@ -15,9 +17,7 @@ class SearchHandler
   end
 
   def self.handle_encoding(name)
-    name.encode("utf-8")
-
-    name.gsub("%29", ")").gsub("%28", "(").gsub("%27", "'")
+    URI.unescape(name.encode("utf-8"))
   end
 
 end

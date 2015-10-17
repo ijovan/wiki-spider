@@ -55,7 +55,7 @@ function pusher_subscribe(){
 
     table.insertRow(-1).insertCell(0).innerHTML = get_output(parsed);
 
-    document.getElementById( 'bottom' ).scrollIntoView();
+    document.getElementById('bottom').scrollIntoView();
   });
 };
 
@@ -93,5 +93,7 @@ function get_output(parsed){
 }
 
 function create_link(node){
-  return " <a href=\"https://en.wikipedia.org/wiki/" + node + "\">" + node.split("_").join(" ") + "</a>";
+  to_print = decodeURIComponent(node.split("_").join(" "));
+
+  return " <a href=\"https://en.wikipedia.org/wiki/" + node + "\">" + to_print + "</a>";
 }

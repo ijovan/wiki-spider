@@ -1,5 +1,6 @@
 require 'nokogiri'
 require 'open-uri'
+require 'uri'
 
 class CSSUnpacker
 
@@ -9,7 +10,9 @@ class CSSUnpacker
   end
 
   def acquire_links(node)
-    file = Nokogiri::HTML(open("https://en.wikipedia.org/wiki/#{node[0]}"))
+    article_name = URI.escape(node[0])
+
+    file = Nokogiri::HTML(open("https://en.wikipedia.org/wiki/#{article_name}"))
 
     unpack(clean_up_refs(file), node[1][:path])
   end
@@ -34,7 +37,7 @@ class CSSUnpacker
 
       name = link.split("/wiki/")[1].split("#")[0]
 
-      name = name.gsub("%29", ")").gsub("%28", "(").gsub("%27", "'")
+      name = URI.unescape(name)
 
       if name.eql?(@target)
         return { :final_path => parent.clone.push(@target) }
