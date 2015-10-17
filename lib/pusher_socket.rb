@@ -7,23 +7,49 @@ class PusherSocket
   end
 
   def send_connecting(start_node)
-    send("Connecting #{start_node} and #{@target}.")
+    message = {
+      :type => "CONNECTING",
+      :start => start_node,
+      :target => @target
+    }
+
+    send(message)
   end
 
   def send_failed(iter)
     if (iter > @max_iter)
-      send("Search failed to complete in #{@max_iter} iterations.")
+      message = {
+        :type => "FAILED_MAX_ITER",
+        :max_iter => @max_iter
+      }
     else
-      send("Search failed")
+      message = {
+        :type => "FAILED"
+      }
     end
+
+    send(message)
   end
 
   def send_found_it(path, iter, time)
-    send("FOUND IT: #{path} in #{iter} iterations and #{time.round(2)} seconds with #{path.count - 2} connecting nodes.")
+    message = {
+      :type => "FOUND",
+      :path => path,
+      :iter => iter,
+      :time => time.round(2)
+    }
+
+    send(message)
   end
 
   def send_iteration(iter, node)
-    send("#{iter} #{node[:path]} #{node[:score]}")
+    message = {
+      :type => "ITER",
+      :iter => iter,
+      :path => node[:path]
+    }
+
+    send(message)
   end
 
   private
@@ -31,7 +57,7 @@ class PusherSocket
   def send(message)
     puts(message)
 
-    Pusher.trigger(@channel, 'message', { message: message })
+    Pusher.trigger(@channel, 'message', { message: message.to_json })
   end
 
 end

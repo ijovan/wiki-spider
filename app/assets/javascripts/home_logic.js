@@ -50,7 +50,37 @@ function pusher_subscribe(){
   var channel = pusher.subscribe(session_id);
 
   channel.bind('message', function(data) {
+    parsed = JSON.parse(data.message);
+    var output = "";
+
+    switch(parsed.type) {
+      case "CONNECTING":
+        output = "Connecting " + create_link(parsed.start) + " and " +
+          create_link(parsed.target) + ".";
+        break;
+      case "ITER":
+        output = parsed.iter + ": " + parsed.path.map(create_link);
+        break;
+      case "FOUND":
+        output = "FOUND IT: " + parsed.path.map(create_link) +
+          " in " + parsed.time + " seconds, " + parsed.iter + " iterations" +
+          " and " + (parsed.path.length - 2) + " connecting nodes.";
+        break;
+      case "FAILED":
+        output = "Search failed.";
+        break;
+      case "FAILED_MAX_ITER":
+        output = "Search failed to complete in " + parsed.max_iter +
+          " iterations.";
+        break;
+    }
+
     var table = document.getElementById("results");
-    table.insertRow(-1).insertCell(0).innerHTML = data.message;
+    table.insertRow(-1).insertCell(0).innerHTML = output;
   });
 };
+
+function create_link(node){
+  return " <a href=\"https://en.wikipedia.org/wiki/" + node + "\">" + node.replace("_", " ") + "</a>";
+}
+
