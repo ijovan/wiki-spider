@@ -51,7 +51,8 @@ class CSSUnpacker
       "Digital_object_identifier",
       "Integrated_Authority_File",
       "Virtual_International_Authority_File",
-      "Geographic_coordinate_system"
+      "Geographic_coordinate_system",
+      "National Diet_Library"
     ]
   end
 

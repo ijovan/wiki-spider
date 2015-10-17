@@ -6,7 +6,6 @@ class Reader
     @target = NameHandler.clean_node_name(target)
     @socket = PusherSocket.new(channel, target, MAX_ITER)
     @css_unpacker = CSSUnpacker.new(target, "p a, div#bodyContent li a")
-    @iter = 0
 
     scan_target
   end
@@ -19,7 +18,7 @@ class Reader
     if @result
       @socket.send_found_it(@result, @iter, time)
     else
-      @socket.send_failed(@iter)
+      @socket.send_failed(@iter || 0)
     end
 
     @result
