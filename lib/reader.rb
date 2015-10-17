@@ -32,7 +32,9 @@ class Reader
     target_words = links.map { |link| link[0] }
 
     @score_handler = ScoreHandler.new(@target, target_words.uniq)
-  rescue
+  rescue Exception => e
+    puts e
+
     @halt = true
   end
 
@@ -42,14 +44,16 @@ class Reader
     handle_links(@css_unpacker.acquire_links(start_node))
 
     @socket.send_connecting(link)
-  rescue
+  rescue Exception => e
+    puts e
+
     @halt = true
   end
 
   def scan_link(node)
     handle_links(@css_unpacker.acquire_links(node))
-  rescue
-    puts "Exception: #{node}"
+  rescue Exception => e
+    puts e
   end
 
   def search(link)

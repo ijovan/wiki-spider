@@ -32,7 +32,9 @@ class CSSUnpacker
 
       next unless link.include?("/wiki/")
 
-      name = link.split("/wiki/")[1]
+      name = link.split("/wiki/")[1].split("#")[0]
+
+      name = name.gsub("%29", ")").gsub("%28", "(").gsub("%27", "'")
 
       if name.eql?(@target)
         return { :final_path => parent.clone.push(@target) }
@@ -44,9 +46,7 @@ class CSSUnpacker
           name.include?(":") ||
           link.split("/wiki/")[0] != "")
 
-      cleaned = name.split("#")[0]
-
-      links[cleaned] = { :path => parent.clone.push(cleaned) }
+      links[name] = { :path => parent.clone.push(name) }
     end
 
     links

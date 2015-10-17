@@ -17,7 +17,7 @@ class SearchHandler
   def self.handle_encoding(name)
     name.encode("utf-8")
 
-    name.sub("%29", ")").sub("%28", "(")
+    name.gsub("%29", ")").gsub("%28", "(").gsub("%27", "'")
   end
 
 end
