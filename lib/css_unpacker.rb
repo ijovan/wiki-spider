@@ -11,10 +11,18 @@ class CSSUnpacker
   def acquire_links(node)
     file = Nokogiri::HTML(open("https://en.wikipedia.org/wiki/#{node[0]}"))
 
-    unpack(file, node[1][:path])
+    unpack(clean_up_refs(file), node[1][:path])
   end
 
   private
+
+  def clean_up_refs(file)
+    file.search(".reflist").each do |node|
+      node.remove
+    end
+
+    file
+  end
 
   def unpack(file, parent)
     links = {}
@@ -48,6 +56,8 @@ class CSSUnpacker
     [
       "International_Standard_Book_Number",
       "International_Standard_Serial_Number",
+      "International_Standard_Name_Identifier",
+      "Virtual_International_Authority_File",
       "Digital_object_identifier",
       "Integrated_Authority_File",
       "Virtual_International_Authority_File",
@@ -56,7 +66,15 @@ class CSSUnpacker
       "Oxford_University_Press",
       "Google_Books",
       "Library_of_Congress_Control_Number",
-      "OCLC"
+      "OCLC",
+      "LIBRIS",
+      "HarperCollins",
+      "Macmillan_Publishers",
+      "Penguin_Books",
+      "Cambridge_University_Press",
+      "Yale_University_Press",
+      "British_Library",
+      "YouTube"
     ]
   end
 
