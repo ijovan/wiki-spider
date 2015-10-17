@@ -24,7 +24,8 @@ class PusherSocket
       }
     else
       message = {
-        :type => "FAILED"
+        :type => "FAILED",
+        :iter => iter
       }
     end
 

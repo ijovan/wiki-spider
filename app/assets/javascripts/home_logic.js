@@ -64,10 +64,15 @@ function pusher_subscribe(){
       case "FOUND":
         output = "FOUND IT: " + parsed.path.map(create_link) +
           " in " + parsed.time + " seconds, " + parsed.iter + " iterations" +
-          " and " + (parsed.path.length - 2) + " connecting nodes.";
+          " and " + Math.max(0, (parsed.path.length - 2)) + " connecting nodes.";
         break;
       case "FAILED":
         output = "Search failed.";
+        if (parsed.iter == 0) {
+          output += " Check the ending article link.";
+        } else if (parsed.iter == 1) {
+          output += " Check the starting article link.";
+        }
         break;
       case "FAILED_MAX_ITER":
         output = "Search failed to complete in " + parsed.max_iter +

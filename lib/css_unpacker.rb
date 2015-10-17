@@ -12,8 +12,6 @@ class CSSUnpacker
     file = Nokogiri::HTML(open("https://en.wikipedia.org/wiki/#{node[0]}"))
 
     unpack(file, node[1][:path])
-  rescue
-    puts "ERROR: #{node}"
   end
 
   private

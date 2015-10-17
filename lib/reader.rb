@@ -6,15 +6,14 @@ class Reader
     @target = NameHandler.clean_node_name(target)
     @socket = PusherSocket.new(channel, target, MAX_ITER)
     @css_unpacker = CSSUnpacker.new(target, "p a, div#bodyContent li a")
+    @iter = 0
 
     scan_target
   end
 
   def find(start_node)
-    @socket.send_connecting(start_node)
-
     time = Timer.measure_time do
-      search(start_node)
+      search(start_node) unless @halt
     end
 
     if @result
@@ -34,6 +33,24 @@ class Reader
     target_words = links.map { |link| link[0] }
 
     @score_handler = ScoreHandler.new(@target, target_words.uniq)
+  rescue
+    @halt = true
+  end
+
+  def scan_starter(link)
+    start_node = [link, { :path => [link], :score => 0 }]
+
+    handle_links(@css_unpacker.acquire_links(start_node))
+
+    @socket.send_connecting(link)
+  rescue
+    @halt = true
+  end
+
+  def scan_link(node)
+    handle_links(@css_unpacker.acquire_links(node))
+  rescue
+    puts "Exception: #{node}"
   end
 
   def search(link)
@@ -41,16 +58,14 @@ class Reader
 
     @result = [link] if link.eql?(@target)
 
-    start_node = [link, { :path => [link], :score => 0 }]
+    scan_starter(link)
 
-    handle_links(@css_unpacker.acquire_links(start_node))
-
-    while (!@result && @iter <= MAX_ITER) do
+    while (!@result && @iter <= MAX_ITER && !@halt) do
       max = @score_handler.take_current_best
 
       @socket.send_iteration(@iter, max[1])
 
-      handle_links(@css_unpacker.acquire_links(max))
+      scan_link(max)
 
       @iter += 1
     end
