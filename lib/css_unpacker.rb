@@ -52,7 +52,11 @@ class CSSUnpacker
       "Integrated_Authority_File",
       "Virtual_International_Authority_File",
       "Geographic_coordinate_system",
-      "National Diet_Library"
+      "National_Diet_Library",
+      "Oxford_University_Press",
+      "Google_Books",
+      "Library_of_Congress_Control_Number",
+      "OCLC"
     ]
   end
 

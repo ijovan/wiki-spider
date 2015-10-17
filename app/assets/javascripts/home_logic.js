@@ -93,5 +93,5 @@ function get_output(parsed){
 }
 
 function create_link(node){
-  return " <a href=\"https://en.wikipedia.org/wiki/" + node + "\">" + node.replace("_", " ") + "</a>";
+  return " <a href=\"https://en.wikipedia.org/wiki/" + node + "\">" + node.split("_").join(" ") + "</a>";
 }
