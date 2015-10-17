@@ -51,14 +51,3 @@ group :development, :test do
 
   gem 'factory_girl_rails'
 end
-
-group :test do
-  gem 'shoulda-matchers'
-
-  gem 'cucumber-rails', require: false
-
-  gem 'database_cleaner'
-
-  gem 'selenium-webdriver'
-end
-
