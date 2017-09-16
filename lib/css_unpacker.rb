@@ -33,7 +33,7 @@ class CSSUnpacker
     file.css(@selector).each do |a|
       link = a["href"]
 
-      next unless link.include?("/wiki/")
+      next unless link && link.include?("/wiki/")
 
       name = link.split("/wiki/")[1].split("#")[0]
 
@@ -43,10 +43,10 @@ class CSSUnpacker
         return { :final_path => parent.clone.push(@target) }
       end
 
-      next if ((skip_list.include?(name) &&
-          @selector.include?("li")) ||
+      next if (((skip_list && skip_list.include?(name)) &&
+          (@selector && @selector.include?("li"))) ||
           a["rel"].eql?("nofollow") ||
-          name.include?(":") ||
+          (name && name.include?(":")) ||
           link.split("/wiki/")[0] != "")
 
       links[name] = { :path => parent.clone.push(name) }
